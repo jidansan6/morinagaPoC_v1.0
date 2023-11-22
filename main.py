@@ -120,8 +120,6 @@ def send_email(subject, body, to_email):
 st.set_page_config(
     page_title="β版プレゼントサイト",
     menu_items={
-        "Get Help": "mailto:a-komukai-ah@morinaga.co.jp",
-        "Report a bug": "mailto:jidansan6.serv@gmail.com",
         "About": """
         # β版プレゼントサイト
         このアプリはβ版であり、内容は予告なく変更する場合がございます。2023ⓒ森永製菓㈱ 小向
