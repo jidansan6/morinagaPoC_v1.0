@@ -1,0 +1,6 @@
+[theme]
+primaryColor="#e50914" # ネットフリックのキーカラー
+backgroundColor="#191919" # ダークグレー
+secondaryBackgroundColor="#5a5957" # 薄めのダークグレー
+textColor="#FFFFFF" # 白
+font="sans serif"
