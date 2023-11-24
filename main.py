@@ -4,6 +4,7 @@ import pandas as pd
 from PIL import Image
 import smtplib
 from email.mime.text import MIMEText
+import json
 
 # google drive読み込み用
 import gspread
@@ -48,27 +49,26 @@ df = pd.read_csv("products_v1.0.csv")
 
 
 def read_DB():
-    # 決まり文句
     scope = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-    # ダウンロードしたjsonファイル名をクレデンシャル変数に設定。
-    credentials = Credentials.from_service_account_file(
-        "morinaga-pjt-2f117589ec39.json", scopes=scope
-    )
-    # OAuth2の資格情報を使用してGoogle APIにログイン。
-    gc = gspread.authorize(credentials)
-    # スプレッドシートIDを変数に格納する。
-    SPREADSHEET_KEY = os.environ.get("SPREADSHEET_KEY")
-    # スプレッドシート（ブック）を開く
+    # 環境変数からクレデンシャルのJSON文字列を取得
+    credentials_json_str = os.environ.get("GOOGLE_CREDENTIALS")
+    # JSON文字列を辞書オブジェクトに変換
+    creds_dict = json.loads(credentials_json_str)
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+    # OAuth2の資格情報を使用してGoogle APIにログイン
+    gc = gspread.authorize(creds)
+    # スプレッドシートIDを環境変数から取得
+    SPREADSHEET_KEY = os.getenv("SPREADSHEET_KEY")
+    # スプレッドシートを開く
     workbook = gc.open_by_key(SPREADSHEET_KEY)
     worksheet = workbook.worksheet("userdb_v1.0")
-    # df = pd.DataFrame(worksheet.get_all_values())
     # スプレッドシートをDataFrameに取り込む
-    df_user = pd.DataFrame(
-        worksheet.get_all_values()[1:], columns=worksheet.get_all_values()[0]
-    )
+    data = worksheet.get_all_values()
+    headers = data.pop(0)
+    df_user = pd.DataFrame(data, columns=headers)
     return df_user, worksheet
 
 
