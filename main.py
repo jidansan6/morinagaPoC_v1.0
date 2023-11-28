@@ -40,6 +40,21 @@ if "selected_plan" not in st.session_state:
 if "selected_user_id" not in st.session_state:
     st.session_state["selected_user_id"] = None
 
+# セレクトボックスのリストを作成
+pagelist = ["ログイン", "商品一覧"]
+datelist = [
+    "12月1日（金）",
+    "12月2日（土）",
+    "12月3日（日）",
+    "12月4日（月）",
+    "12月5日（火）",
+    "12月6日（水）",
+    "12月7日（木）",
+    "12月8日（金）",
+    "12月9日（土）",
+    "12月10日（日）",
+]
+planmoney = {"シンプルプラン": 3000, "スタンダードプラン": 6000, "プレミアムプラン": 9000}
 
 #######################################################################
 # 関数や事前ファイル読み込み
@@ -82,6 +97,7 @@ def display_products(category_name):
     urls = df_selected["URL"].tolist()
     prices = df_selected["値段"].tolist()
     detail_urls = df_selected["詳細ページURL"].tolist()  # 詳細ページのURL
+    prices_detail = df_selected["金額"].tolist()
 
     for i in range(len(names)):
         with cols[i % 3]:
@@ -101,13 +117,19 @@ def display_products(category_name):
                 )
             # ボタンが押された際の購入処理
             if st.button(f"{i+1}を選択"):
-                # 購入ボタンが押されたら、状態を更新
-                st.session_state["purchase_clicked"] = True
-                st.session_state["selected_product"] = {
-                    "name": names[i],
-                    "price": prices[i],
-                    "url": urls[i],
-                }
+                if (
+                    planmoney[st.session_state["selected_user_info"]["plan"]]
+                    >= prices_detail[i]
+                ):
+                    # 購入ボタンが押されたら、状態を更新
+                    st.session_state["purchase_clicked"] = True
+                    st.session_state["selected_product"] = {
+                        "name": names[i],
+                        "price": prices[i],
+                        "url": urls[i],
+                    }
+                else:
+                    st.error("ご登録のプランでは購入ができません。プランか購入したい商品を変更してください。")
 
 
 # 購入処理
@@ -126,13 +148,20 @@ def display_purchase_section():
             f"選択されている商品:　 {st.session_state['selected_product']['name']} / {st.session_state['selected_product']['price']}"
         )
         # メッセージ記入
-        user_input = st.text_area("送りたいメッセージ（最大250文字）", max_chars=250)
+        wife_name = st.text_area("奥様のお名前をご記入ください", max_chars=12, placeholder="山田 花子")
+        wife_rubi = st.text_area("奥様のお名前（読み仮名）", max_chars=12, placeholder="やまだ はなこ")
+        user_input = st.text_area(
+            "送りたいメッセージ（最大250文字）", max_chars=250, placeholder="いつもありがとう！少しばかりの感謝の気持ちです。"
+        )
+        date = st.selectbox("お届け希望日を選択", datelist)
+        inquire = st.text_area("お届け等に関してご要望があればご記入ください。", max_chars=250)
+
         # 購入確定
         if st.button("購入確定！"):
             # 購入ボタンが押されたら、メールを送信
             # メール内容
             subject = "購入確定通知"
-            body = f"商品が購入されました。\n■購入者: {st.session_state['selected_user_info']['user_name']}\n■購入商品情報: {st.session_state['selected_product']['name']}\n■ユーザーのメッセージ:\n{user_input}\n■お届け先:\n〒{st.session_state['selected_user_info']['postcode']}\n{st.session_state['selected_user_info']['address']}\n■電話番号: {st.session_state['selected_user_info']['tel']}\n■契約プラン：{st.session_state['selected_user_info']['plan']}"
+            body = f"商品が購入されました。\n■購入者: {st.session_state['selected_user_info']['user_name']}\n■購入商品情報: {st.session_state['selected_product']['name']}\n■ユーザーのメッセージ:\n{user_input}\n■お届け先:\n〒{st.session_state['selected_user_info']['postcode']}\n{st.session_state['selected_user_info']['address']}\n■お届け先名（配偶者名）:{wife_name}({wife_rubi})\n■電話番号: {st.session_state['selected_user_info']['tel']}\n■契約プラン: {st.session_state['selected_user_info']['plan']}\n\n■お届け希望日: {date}\n\n■要望: {inquire}"
 
             # メール送信
             send_email(subject, body, to_email)
@@ -272,9 +301,6 @@ st.markdown(
 # Title
 st.title("β版プレゼントサイト")
 
-# セレクトボックスのページリストを作成
-pagelist = ["ログイン", "商品一覧"]
-
 # サイドバーのセレクトボックスを配置
 selector = st.sidebar.selectbox("ページ選択", pagelist)
 if selector == "ログイン":
@@ -303,7 +329,7 @@ elif selector == "商品一覧":
         st.write(
             "ようこそ！"
             + st.session_state["selected_user_info"]["nickname"]
-            + "さん！（名前が違う場合はログインしなおしてください。）"
+            + "！（お名前が違う場合はログインしなおしてください。）"
         )
     st.write("商品を選択後、画面下部へ進みメッセージを記入してから購入を確定してください。")
     st.markdown(
