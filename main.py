@@ -332,6 +332,7 @@ elif selector == "商品一覧":
             + "！（お名前が違う場合はログインしなおしてください。）"
         )
     st.write("商品を選択後、画面下部へ進みメッセージを記入してから購入を確定してください。")
+    st.write("※商品イメージはあくまでイメージであり、同一商品が届くわけではございません。")
     st.markdown(
         '<hr style="border:1px solid #5a5957; margin-top: 15px; margin-bottom: 25px" />',
         unsafe_allow_html=True,
